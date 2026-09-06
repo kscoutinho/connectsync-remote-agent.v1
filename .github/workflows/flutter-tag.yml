@@ -3,11 +3,16 @@ name: Flutter Tag Build
 on:
   workflow_dispatch:
   push:
+    branches:
+      - 'connectsync/v1.0.0-branding'
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-[0-9]+'
+
+permissions:
+  contents: write
 
 jobs:
   run-flutter-tag-build:
@@ -15,4 +20,4 @@ jobs:
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: ${{ github.ref_name }}
+      upload-tag: "connectsync-v1.0.0-lab"
