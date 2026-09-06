@@ -2081,6 +2081,8 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
 }
 
 pub fn load_custom_client() {
+    apply_connectsync_client_defaults();
+
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
@@ -2100,6 +2102,35 @@ pub fn load_custom_client() {
         };
         read_custom_client(&data.trim());
     }
+}
+
+/// Applies the ConnectSync identity and self-hosted infrastructure defaults.
+///
+/// These values are compiled into the client so a fresh installation never
+/// falls back to the public RustDesk rendezvous infrastructure. Server values
+/// are placed in `OVERWRITE_SETTINGS`, which also prevents local changes from
+/// silently moving a managed endpoint away from ConnectSync's relay.
+fn apply_connectsync_client_defaults() {
+    const APP_NAME: &str = "ConnectSync";
+    const ID_SERVER: &str = "relay.connectsync.com.br:21116";
+    const RELAY_SERVER: &str = "relay.connectsync.com.br:21117";
+    const SERVER_KEY: &str = "ptElE1Q5YsKItCpEbUv9tnItl0n01zZbrt8qmNjTC7s=";
+
+    *config::APP_NAME.write().unwrap() = APP_NAME.to_owned();
+    *config::PROD_RENDEZVOUS_SERVER.write().unwrap() = ID_SERVER.to_owned();
+
+    let mut settings = config::OVERWRITE_SETTINGS.write().unwrap();
+    settings.insert(
+        keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_owned(),
+        ID_SERVER.to_owned(),
+    );
+    settings.insert(keys::OPTION_RELAY_SERVER.to_owned(), RELAY_SERVER.to_owned());
+    settings.insert(keys::OPTION_KEY.to_owned(), SERVER_KEY.to_owned());
+    drop(settings);
+
+    let mut builtin = config::BUILTIN_SETTINGS.write().unwrap();
+    builtin.insert(keys::OPTION_HIDE_POWERED_BY_ME.to_owned(), "Y".to_owned());
+    builtin.insert(keys::OPTION_HIDE_SERVER_SETTINGS.to_owned(), "Y".to_owned());
 }
 
 fn read_custom_client_advanced_settings(
