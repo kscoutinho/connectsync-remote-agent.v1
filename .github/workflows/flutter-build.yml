@@ -248,6 +248,10 @@ jobs:
           # can reference a stable .ico file instead of falling back to a generic icon.
           Copy-Item -Force ./res/icon.ico ./rustdesk/data/flutter_assets/assets/icon.ico
 
+          # The branded application name is ConnectSync, and the installer creates
+          # shortcuts/services that target ConnectSync.exe.
+          Move-Item -Force ./rustdesk/rustdesk.exe ./rustdesk/ConnectSync.exe
+
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
           Expand-Archive usbmmidd_v2.zip -DestinationPath .
@@ -326,7 +330,7 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
+          python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/ConnectSync.exe
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/ConnectSync-Remote-Agent-v1.0.0-${{ matrix.job.arch }}.exe
