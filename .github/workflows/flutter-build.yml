@@ -9,6 +9,9 @@ on:
       upload-tag:
         type: string
         default: "nightly"
+      prerelease:
+        type: boolean
+        default: true
 
 # NOTE: F-Droid builder script 'flutter/build_fdroid.sh' reads environment
 # variables from this workflow!
@@ -371,12 +374,25 @@ jobs:
           path: ./SignOutput/*
           if-no-files-found: error
 
-      - name: Publish Release
+      - name: Publish ConnectSync V1 Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
-          prerelease: true
+          prerelease: ${{ inputs.prerelease }}
           tag_name: ${{ env.TAG_NAME }}
+          target_commitish: ${{ github.sha }}
+          name: ConnectSync Remote Agent V1.0.0
+          fail_on_unmatched_files: true
+          body: |
+            Cliente Windows x64 personalizado para a infraestrutura de acesso remoto da ConnectSync.
+
+            - Instalador MSI para implantação permanente como serviço
+            - Executável portátil para suporte assistido
+            - Servidores ID e Relay da ConnectSync incorporados
+            - Identidade visual e ícone ConnectSync
+            - Baseado no RustDesk OSS 1.4.9, sob licença AGPL-3.0
+
+            Observação: esta versão ainda não possui assinatura digital Authenticode.
           files: |
             ./SignOutput/ConnectSync-Remote-Agent-*.msi
             ./SignOutput/ConnectSync-Remote-Agent-*.exe

@@ -1,47 +1,45 @@
 # ConnectSync Remote Agent
 
-ConnectSync Remote Agent V1 is a branded Windows x64 remote-support client
-based on RustDesk 1.4.9. It is built for ConnectSync's self-hosted
-infrastructure and does not use the public RustDesk rendezvous servers.
+## Versão 1.0.0
 
-## Embedded infrastructure
+Cliente Windows x64 personalizado para suporte remoto ConnectSync, baseado no RustDesk OSS 1.4.9.
 
-- ID server: `relay.connectsync.com.br:21116`
-- Relay server: `relay.connectsync.com.br:21117`
-- API server: not configured (OSS server)
-- Server public key: compiled into the client
-- Runtime application and service name: `ConnectSync`
-- Windows product name: `ConnectSync Remote Agent`
+### Configuração incorporada
 
-The server private key is not present in this repository or in the client.
+- ID Server: `relay.connectsync.com.br:21116`
+- Relay Server: `relay.connectsync.com.br:21117`
+- API Server: não configurado
+- Chave pública do servidor: incorporada ao binário
+- Aplicativo, diretório de configuração e serviço: `ConnectSync`
+- Produto MSI: `ConnectSync Remote Agent`
 
-## V1 scope
+A chave privada permanece exclusivamente no servidor e não integra o código-fonte ou os instaladores.
+
+### Escopo validado
 
 - Windows x64
-- ConnectSync name, product metadata, logo and application icons
-- ConnectSync server configuration enforced at runtime
-- Upstream public-server fallback disabled
-- RustDesk attribution retained in the About screen and source distribution
-- Unsigned laboratory build until a ConnectSync code-signing certificate is
-  provisioned
+- Logo, ícones e metadados ConnectSync
+- MSI permanente com serviço automático
+- Executável portátil para suporte assistido
+- Servidor próprio obrigatório, sem fallback para os servidores públicos
+- Instalação limpa com apenas um serviço `ConnectSync`
+- Conexão externa e persistência após reinicialização validadas em laboratório
 
-## Versioning
+### Publicação
 
-ConnectSync V1 is based on upstream RustDesk `1.4.9`. The internal technical
-version is `1.4.9-connectsync.1`; public installer artifacts use the
-`ConnectSync-Remote-Agent-v1.0.0` name.
+A release estável usa a tag `connectsync-v1.0.0`. O workflow define explicitamente o commit de destino da tag, garantindo que o código-fonte publicado corresponda aos binários.
 
-## Build
+Arquivos oficiais:
 
-The GitHub Actions workflow builds the Windows x64 Flutter client on a Windows
-runner using the upstream pinned toolchains. Trigger the tag workflow with a
-V1 semantic tag after reviewing the source changes.
+- `ConnectSync-Remote-Agent-v1.0.0-x86_64.msi`
+- `ConnectSync-Remote-Agent-v1.0.0-x86_64.exe`
 
-## License and source availability
+O arquivo legado `rustdesk-1.4.9-x86_64.msi`, presente na release de laboratório, não deve ser distribuído.
 
-This derivative is distributed under the GNU Affero General Public License
-version 3. The corresponding source for every distributed binary must remain
-available to its recipients. Keep the upstream copyright and license files,
-and publish the exact tagged source used for each ConnectSync release.
+### Assinatura digital
 
-See `LICENCE` and `README.md` for upstream project notices.
+A V1 operacional ainda é compilada sem assinatura Authenticode. Para distribuição ampla, adquirir um certificado de assinatura de código para a ConnectSync e cadastrar os segredos de assinatura no GitHub Actions.
+
+### Licença e atribuição
+
+Este derivado permanece sob GNU AGPL-3.0. A atribuição ao RustDesk e os arquivos de licença originais devem ser preservados. O repositório deve continuar público para disponibilizar o código correspondente aos binários distribuídos.
