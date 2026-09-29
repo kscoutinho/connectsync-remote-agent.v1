@@ -2,9 +2,6 @@ name: ConnectSync V1 Stable Release
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'connectsync/v1.0.0-branding'
 
 permissions:
   contents: write
