@@ -49,6 +49,7 @@ import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 final globalKey = GlobalKey<NavigatorState>();
 final navigationBarKey = GlobalKey();
+final connectSyncSupportCode = ValueNotifier<String?>(null);
 
 final isAndroid = isAndroid_;
 final isIOS = isIOS_;
@@ -2293,6 +2294,7 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   String? id;
   String? password;
   String? switchUuid;
+  String? supportCode;
   bool? forceRelay;
   for (int i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -2344,9 +2346,20 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
       case '--relay':
         forceRelay = true;
         break;
+      case '--support':
+        if (i + 1 < args.length) {
+          supportCode = args[i + 1];
+          i++;
+        }
+        break;
       default:
         break;
     }
+  }
+  if (supportCode != null && RegExp(r'^\d{8}$').hasMatch(supportCode!)) {
+    connectSyncSupportCode.value = supportCode;
+    windowOnTop(null);
+    return true;
   }
   if (type != null && id != null) {
     switch (type) {
@@ -2408,6 +2421,7 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
     "rdp",
     "terminal",
     "terminal-admin",
+    "support",
   ];
   if (uri.authority.isEmpty &&
       uri.path.split('').every((char) => char == '/')) {
