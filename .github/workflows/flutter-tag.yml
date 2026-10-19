@@ -1,19 +1,19 @@
-name: ConnectSync V1 Stable Release
+name: ConnectSync V1.1 Laboratory Release
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'connectsync/v1.0.0-branding'
+      - 'connectsync/v1.1-dual-code'
 
 permissions:
   contents: write
 
 jobs:
-  run-connectsync-v1-release:
+  run-connectsync-v1-1-lab-release:
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: "connectsync-v1.0.0"
-      prerelease: false
+      upload-tag: "connectsync-v1.1.0-lab.1"
+      prerelease: true
