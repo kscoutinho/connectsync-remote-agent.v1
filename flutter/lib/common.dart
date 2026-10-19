@@ -2503,6 +2503,10 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
     }
   }
 
+  if (command == '--support' && id != null) {
+    return [command!, id];
+  }
+
   if (isMobile && id != null) {
     final forceRelay = queryParameters["relay"] != null;
     final password = queryParameters["password"];
