@@ -584,7 +584,9 @@ class _GeneratedCodeDialogState extends State<_GeneratedCodeDialog> {
       final response = await http
           .get(
             Uri.parse('$_apiBase/sessions/${widget.session.id}'),
-            headers: {'authorization': 'Bearer ${widget.session.agentToken}'},
+            headers: {
+              'x-connectsync-agent-token': widget.session.agentToken,
+            },
           )
           .timeout(_requestTimeout);
       final body = _decodeBody(response);
@@ -598,7 +600,9 @@ class _GeneratedCodeDialogState extends State<_GeneratedCodeDialog> {
         _technicianName = session['technicianName']?.toString();
         _error = '';
       });
-      if (_status != 'waiting_technician') _pollTimer?.cancel();
+      if (['authorized', 'expired', 'revoked'].contains(_status)) {
+        _pollTimer?.cancel();
+      }
     } on TimeoutException {
       if (mounted) setState(() => _error = 'Portal temporariamente indisponível. Tentando novamente...');
     } catch (_) {
@@ -619,7 +623,7 @@ class _GeneratedCodeDialogState extends State<_GeneratedCodeDialog> {
           .post(
             Uri.parse('$_apiBase/sessions/${widget.session.id}'),
             headers: {
-              'authorization': 'Bearer ${widget.session.agentToken}',
+              'x-connectsync-agent-token': widget.session.agentToken,
               'content-type': 'application/json',
             },
             body: jsonEncode({'action': action}),
