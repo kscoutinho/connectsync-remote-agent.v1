@@ -336,7 +336,7 @@ jobs:
           python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/ConnectSync.exe
           popd
           mkdir -p ./SignOutput
-          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/ConnectSync-Remote-Agent-v1.0.0-${{ matrix.job.arch }}.exe
+          mv ./target/release/rustdesk-portable-packer.exe ./SignOutput/ConnectSync-Remote-Agent-v1.1.0-${{ matrix.job.arch }}.exe
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
@@ -357,7 +357,7 @@ jobs:
           $msiPlatform = if ('${{ matrix.job.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           msbuild msi.sln -p:Configuration=Release -p:Platform=$msiPlatform /p:TargetVersion=Windows10
           $msi = Get-ChildItem ./Package/bin/*/Release/en-us/Package.msi | Select-Object -First 1
-          mv $msi.FullName ../../SignOutput/ConnectSync-Remote-Agent-v1.0.0-${{ matrix.job.arch }}.msi
+          mv $msi.FullName ../../SignOutput/ConnectSync-Remote-Agent-v1.1.0-${{ matrix.job.arch }}.msi
           sha256sum ../../SignOutput/ConnectSync-Remote-Agent-*.msi
 
       - name: Sign rustdesk self-extracted file
@@ -370,18 +370,18 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ConnectSync-Remote-Agent-V1-Windows-${{ matrix.job.arch }}
+          name: ConnectSync-Remote-Agent-V1.1-Windows-${{ matrix.job.arch }}
           path: ./SignOutput/*
           if-no-files-found: error
 
-      - name: Publish ConnectSync V1 Release
+      - name: Publish ConnectSync V1.1 Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
         if: env.UPLOAD_ARTIFACT == 'true'
         with:
           prerelease: ${{ inputs.prerelease }}
           tag_name: ${{ env.TAG_NAME }}
           target_commitish: ${{ github.sha }}
-          name: ConnectSync Remote Agent V1.0.0
+          name: ConnectSync Remote Agent V1.1.0
           fail_on_unmatched_files: true
           body: |
             Cliente Windows x64 personalizado para a infraestrutura de acesso remoto da ConnectSync.
@@ -390,6 +390,8 @@ jobs:
             - Executável portátil para suporte assistido
             - Servidores ID e Relay da ConnectSync incorporados
             - Identidade visual e ícone ConnectSync
+            - Código de atendimento gerado pelo técnico ou pelo cliente
+            - Integração segura com remoto.connectsync.com.br
             - Baseado no RustDesk OSS 1.4.9, sob licença AGPL-3.0
 
             Observação: esta versão ainda não possui assinatura digital Authenticode.
