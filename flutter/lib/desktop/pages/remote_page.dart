@@ -936,7 +936,10 @@ class _ImagePaintState extends State<ImagePaint> {
 
   MouseCursor _buildCustomCursor(BuildContext context, double scale) {
     final cursor = Provider.of<CursorModel>(context);
-    final cache = cursor.cache ?? preDefaultCursor.cache;
+    final cache = cursor.cache;
+    // Before Windows sends its real cursor bitmap, use the native local arrow
+    // instead of the generic embedded fallback.
+    if (cache == null) return SystemMouseCursors.basic;
     return buildCursorOfCache(cursor, scale, cache);
   }
 

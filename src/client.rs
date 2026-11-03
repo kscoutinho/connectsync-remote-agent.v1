@@ -2674,7 +2674,28 @@ impl LoginConfigHandler {
             .unwrap_or_default();
         }
         avatar = resolve_avatar_url(avatar);
-        let mut display_name = get_builtin_option(keys::OPTION_DISPLAY_NAME);
+        // A connection launched by the ConnectSync technician portal carries
+        // the authenticated technician identity in peer-scoped options. Honor
+        // it only until the portal authorization expires, then fall back to
+        // the normal account/OS display name.
+        let technician_name = self
+            .get_option("connectsync-technician-name")
+            .trim()
+            .to_owned();
+        let technician_until = self
+            .get_option("connectsync-technician-until")
+            .parse::<u128>()
+            .unwrap_or_default();
+        let now_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_millis())
+            .unwrap_or_default();
+        let mut display_name =
+            if !technician_name.is_empty() && now_ms <= technician_until {
+                technician_name
+            } else {
+                get_builtin_option(keys::OPTION_DISPLAY_NAME)
+            };
         if display_name.is_empty() {
             display_name =
                 serde_json::from_str::<serde_json::Value>(&LocalConfig::get_option("user_info"))

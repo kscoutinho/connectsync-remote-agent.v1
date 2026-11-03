@@ -2297,6 +2297,8 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   String? password;
   String? switchUuid;
   String? supportCode;
+  String? connectSyncTechnicianName;
+  String? connectSyncTechnicianUntil;
   bool? forceRelay;
   for (int i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -2354,6 +2356,24 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
           i++;
         }
         break;
+      case '--connectsync-technician-name':
+        if (i + 1 < args.length) {
+          connectSyncTechnicianName = args[i + 1]
+              .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
+              .trim();
+          if (connectSyncTechnicianName.length > 100) {
+            connectSyncTechnicianName =
+                connectSyncTechnicianName.substring(0, 100).trim();
+          }
+          i++;
+        }
+        break;
+      case '--connectsync-technician-until':
+        if (i + 1 < args.length) {
+          connectSyncTechnicianUntil = args[i + 1].trim();
+          i++;
+        }
+        break;
       default:
         break;
     }
@@ -2367,8 +2387,26 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   if (type != null && id != null) {
     switch (type) {
       case UriLinkType.remoteDesktop:
-        Future.delayed(Duration.zero, () {
-          rustDeskWinManager.newRemoteDesktop(id!,
+        final remoteId = id!;
+        Future.delayed(Duration.zero, () async {
+          final technicianName = connectSyncTechnicianName;
+          final technicianUntil = connectSyncTechnicianUntil;
+          if (technicianName != null &&
+              technicianName.isNotEmpty &&
+              technicianUntil != null &&
+              RegExp(r'^\d{10,16}$').hasMatch(technicianUntil)) {
+            // Keep the portal identity scoped to this remote peer. Rust only
+            // uses it while the portal authorization is still valid.
+            await bind.mainSetPeerOption(
+                id: remoteId,
+                key: 'connectsync-technician-name',
+                value: technicianName);
+            await bind.mainSetPeerOption(
+                id: remoteId,
+                key: 'connectsync-technician-until',
+                value: technicianUntil);
+          }
+          await rustDeskWinManager.newRemoteDesktop(remoteId,
               password: password,
               switchUuid: switchUuid,
               forceRelay: forceRelay);
@@ -2544,6 +2582,12 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
     if (password != null) args.addAll(['--password', password]);
     String? switch_uuid = param["switch_uuid"];
     if (switch_uuid != null) args.addAll(['--switch_uuid', switch_uuid]);
+    final technicianName = param["technician"];
+    final technicianUntil = param["technician_until"];
+    if (technicianName != null && technicianUntil != null) {
+      args.addAll(['--connectsync-technician-name', technicianName]);
+      args.addAll(['--connectsync-technician-until', technicianUntil]);
+    }
     if (param["relay"] != null) args.add("--relay");
     return args;
   }
