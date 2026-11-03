@@ -122,6 +122,9 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
     _redeemDialogOpen = true;
     final controller = TextEditingController(text: initialCode);
     Map<String, dynamic>? result;
+    String? validatedCode;
+    String? technicianName;
+    bool previewRequested = false;
 
     try {
       result = await showDialog<Map<String, dynamic>>(
@@ -140,6 +143,19 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
                   error = '';
                 });
                 try {
+                  if (validatedCode != code) {
+                    // Preview is read-only; approval only happens on the next click.
+                    final preview = await _previewTechnicianCode(code);
+                    if (dialogContext.mounted) {
+                      setDialogState(() {
+                        validatedCode = code;
+                        technicianName = preview['technicianName']?.toString() ??
+                            'ConnectSync';
+                        busy = false;
+                      });
+                    }
+                    return;
+                  }
                   final response = await _redeemTechnicianCode(code);
                   if (dialogContext.mounted) {
                     Navigator.of(dialogContext).pop(response);
@@ -161,8 +177,16 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
                 }
               }
 
+              if (initialCode.length == 8 && !previewRequested) {
+                previewRequested = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (dialogContext.mounted) submit();
+                });
+              }
               return AlertDialog(
-                title: const Text('Autorizar atendimento'),
+                title: Text(validatedCode == controller.text
+                    ? 'Confirme o técnico'
+                    : 'Verificar atendimento'),
                 content: SizedBox(
                   width: 380,
                   child: Column(
@@ -170,7 +194,7 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Digite o código de 8 números enviado pelo técnico ConnectSync.',
+                        'Confira o código de 8 números enviado pelo técnico ConnectSync.',
                       ),
                       const SizedBox(height: 18),
                       TextField(
@@ -194,7 +218,28 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
                         ),
                         maxLength: 8,
                         onSubmitted: (_) => submit(),
+                        onChanged: (_) {
+                          setDialogState(() {
+                            validatedCode = null;
+                            technicianName = null;
+                            error = '';
+                          });
+                        },
                       ),
+                      if (validatedCode != null && technicianName != null) ...[
+                        const SizedBox(height: 12),
+                        const Text('Técnico solicitante',
+                            style: TextStyle(fontSize: 12)),
+                        const SizedBox(height: 5),
+                        Text(technicianName!,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 5),
+                        const Text(
+                          'Autorize somente se você reconhece este atendimento.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
                       if (error.isNotEmpty) ...[
                         const SizedBox(height: 10),
                         Text(error,
@@ -235,7 +280,9 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.check, size: 18),
-                    label: const Text('Autorizar'),
+                    label: Text(validatedCode == controller.text
+                        ? 'Autorizar técnico'
+                        : 'Verificar código'),
                   ),
                 ],
               );
@@ -269,6 +316,21 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
         ),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> _previewTechnicianCode(String code) async {
+    final response = await http
+        .post(
+          Uri.parse('https://remoto.connectsync.com.br/api/join'),
+          headers: const {'content-type': 'application/json'},
+          body: jsonEncode({'code': code}),
+        )
+        .timeout(_requestTimeout);
+    final body = _decodeBody(response);
+    if (response.statusCode != 200 || body['ok'] != true) {
+      throw _SupportException(_responseMessage(body));
+    }
+    return body;
   }
 
   Future<Map<String, dynamic>> _redeemTechnicianCode(String code) async {
@@ -324,7 +386,9 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
   }
 
   Future<Map<String, String>> _agentDetails() async {
-    final id = (await bind.mainGetMyId()).trim();
+    final rawId = (await bind.mainGetMyId()).trim();
+    // Do not remove letters or server suffixes from an invalid ID.
+    final id = rawId.replaceAll(RegExp(r'[\s-]'), '');
     if (!RegExp(r'^\d{6,20}$').hasMatch(id)) {
       throw const _SupportException(
         'O agente ainda está conectando. Aguarde aparecer “Pronto” e tente novamente.',

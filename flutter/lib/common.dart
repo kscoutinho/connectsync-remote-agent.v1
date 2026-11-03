@@ -50,6 +50,8 @@ import 'package:flutter_hbb/utils/http_service.dart' as http;
 final globalKey = GlobalKey<NavigatorState>();
 final navigationBarKey = GlobalKey();
 final connectSyncSupportCode = ValueNotifier<String?>(null);
+// Retain the launch type until the initial window visibility decision.
+bool connectSyncSupportLaunchRequested = false;
 
 final isAndroid = isAndroid_;
 final isIOS = isIOS_;
@@ -2357,6 +2359,7 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
     }
   }
   if (supportCode != null && RegExp(r'^\d{8}$').hasMatch(supportCode!)) {
+    connectSyncSupportLaunchRequested = true;
     connectSyncSupportCode.value = supportCode;
     windowOnTop(null);
     return true;
