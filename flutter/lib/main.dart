@@ -44,6 +44,8 @@ Future<void> main(List<String> args) async {
 
   debugPrint("launch args: $args");
   kBootArgs = List.from(args);
+  connectSyncQuickSupportLaunchRequested =
+      args.contains('--connectsync-quick-support');
 
   if (!isDesktop) {
     runMobileApp();
