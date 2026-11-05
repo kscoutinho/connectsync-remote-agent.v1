@@ -52,6 +52,9 @@ final navigationBarKey = GlobalKey();
 final connectSyncSupportCode = ValueNotifier<String?>(null);
 // Retain the launch type until the initial window visibility decision.
 bool connectSyncSupportLaunchRequested = false;
+// True only for the disposable Quick Support executable. It opens the
+// one-time support-code confirmation as soon as the window is ready.
+bool connectSyncQuickSupportLaunchRequested = false;
 
 final isAndroid = isAndroid_;
 final isIOS = isIOS_;

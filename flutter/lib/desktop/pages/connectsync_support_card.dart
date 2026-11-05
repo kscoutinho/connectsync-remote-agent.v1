@@ -28,7 +28,16 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
   void initState() {
     super.initState();
     connectSyncSupportCode.addListener(_consumeDeepLinkCode);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _consumeDeepLinkCode());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final hasDeepLinkCode = connectSyncSupportCode.value != null;
+      _consumeDeepLinkCode();
+      if (connectSyncQuickSupportLaunchRequested &&
+          !hasDeepLinkCode &&
+          mounted &&
+          !_redeemDialogOpen) {
+        _showRedeemDialog();
+      }
+    });
   }
 
   @override
@@ -186,7 +195,9 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
               return AlertDialog(
                 title: Text(validatedCode == controller.text
                     ? 'Confirme o técnico'
-                    : 'Verificar atendimento'),
+                    : connectSyncQuickSupportLaunchRequested
+                        ? 'Iniciar acesso rápido'
+                        : 'Verificar atendimento'),
                 content: SizedBox(
                   width: 380,
                   child: Column(
