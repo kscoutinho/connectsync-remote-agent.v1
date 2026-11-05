@@ -71,6 +71,8 @@ pub fn core_main() -> Option<Vec<String>> {
                 _is_run_as_system = true;
             } else if arg == "--quick_support" {
                 _is_quick_support = true;
+                #[cfg(feature = "flutter")]
+                flutter_args.push("--connectsync-quick-support".to_string());
             } else if arg == "--no-server" {
                 no_server = true;
             } else {
