@@ -2400,11 +2400,11 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
               RegExp(r'^\d{10,16}$').hasMatch(technicianUntil)) {
             // Keep the portal identity scoped to this remote peer. Rust only
             // uses it while the portal authorization is still valid.
-            await bind.mainSetPeerOption(
+            bind.mainSetPeerOptionSync(
                 id: remoteId,
                 key: 'connectsync-technician-name',
                 value: technicianName);
-            await bind.mainSetPeerOption(
+            bind.mainSetPeerOptionSync(
                 id: remoteId,
                 key: 'connectsync-technician-until',
                 value: technicianUntil);

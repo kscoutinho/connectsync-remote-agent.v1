@@ -1385,12 +1385,29 @@ pub fn main_set_peer_flutter_option_sync(id: String, k: String, v: String) -> Sy
 }
 
 pub fn main_set_peer_option(id: String, key: String, value: String) {
-    set_peer_option(id, key, value)
+    set_peer_option_and_sync_session(id, key, value)
 }
 
 pub fn main_set_peer_option_sync(id: String, key: String, value: String) -> SyncReturn<bool> {
-    set_peer_option(id, key, value);
+    set_peer_option_and_sync_session(id, key, value);
     SyncReturn(true)
+}
+
+fn set_peer_option_and_sync_session(id: String, key: String, value: String) {
+    set_peer_option(id.clone(), key.clone(), value.clone());
+
+    // Portal links can target a peer that already has an open connection tab
+    // (for example, after the first password attempt). Keep that in-memory
+    // session aligned with the peer config so the next login message carries
+    // the authenticated portal technician instead of the Windows account.
+    if matches!(
+        key.as_str(),
+        "connectsync-technician-name" | "connectsync-technician-until"
+    ) {
+        if let Some(session) = sessions::get_session_by_peer_id(id, ConnType::DEFAULT_CONN) {
+            session.set_option(key, value);
+        }
+    }
 }
 
 pub fn main_set_peer_alias(id: String, alias: String) {
