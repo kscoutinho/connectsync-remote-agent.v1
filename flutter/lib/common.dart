@@ -56,6 +56,23 @@ bool connectSyncSupportLaunchRequested = false;
 // one-time support-code confirmation as soon as the window is ready.
 bool connectSyncQuickSupportLaunchRequested = false;
 
+String? connectSyncSupportCodeFromArgs(List<String> args) {
+  const directPrefix = '--connectsync-support-code=';
+  for (var i = 0; i < args.length; i++) {
+    String? code;
+    final arg = args[i];
+    if (arg == '--support' && i + 1 < args.length) {
+      code = args[i + 1];
+    } else if (arg.startsWith(directPrefix)) {
+      code = arg.substring(directPrefix.length);
+    }
+    if (code != null && RegExp(r'^\d{8}$').hasMatch(code)) {
+      return code;
+    }
+  }
+  return null;
+}
+
 final isAndroid = isAndroid_;
 final isIOS = isIOS_;
 final isWindows = isWindows_;
@@ -2299,7 +2316,7 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   String? id;
   String? password;
   String? switchUuid;
-  String? supportCode;
+  String? supportCode = connectSyncSupportCodeFromArgs(args);
   String? connectSyncTechnicianName;
   String? connectSyncTechnicianUntil;
   bool? forceRelay;

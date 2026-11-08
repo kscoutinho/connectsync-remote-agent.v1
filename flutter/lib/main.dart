@@ -44,6 +44,13 @@ Future<void> main(List<String> args) async {
 
   debugPrint("launch args: $args");
   kBootArgs = List.from(args);
+  final initialSupportCode = connectSyncSupportCodeFromArgs(args);
+  if (initialSupportCode != null) {
+    // Prime the value before the first frame so Quick Support does not open
+    // its empty fallback dialog while the window startup callback is pending.
+    connectSyncSupportLaunchRequested = true;
+    connectSyncSupportCode.value = initialSupportCode;
+  }
   connectSyncQuickSupportLaunchRequested =
       args.contains('--connectsync-quick-support');
 

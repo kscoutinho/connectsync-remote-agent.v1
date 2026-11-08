@@ -15,7 +15,9 @@ typedef char** (*FUNC_RUSTDESK_CORE_MAIN)(int*);
 typedef void (*FUNC_RUSTDESK_FREE_ARGS)( char**, int);
 typedef int (*FUNC_RUSTDESK_GET_APP_NAME)(wchar_t*, int);
 /// Note: `--server`, `--service` are already handled in [core_main.rs].
-const std::vector<std::string> parameters_white_list = {"--install", "--cm"};
+const std::vector<std::string> parameters_white_list = {
+  "--install", "--cm", "--quick_support"
+};
 
 const wchar_t* getWindowClassName();
 
@@ -46,7 +48,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
       GetCommandLineArguments();
   // Remove possible trailing whitespace from command line arguments
   for (auto& argument : command_line_arguments) {
-    argument.erase(argument.find_last_not_of(" \n\r\t"));
+    const auto last_non_space = argument.find_last_not_of(" \n\r\t");
+    if (last_non_space == std::string::npos) {
+      argument.clear();
+    } else {
+      argument.erase(last_non_space + 1);
+    }
   }
 
   int args_len = 0;

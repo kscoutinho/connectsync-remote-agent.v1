@@ -1,4 +1,4 @@
-name: ConnectSync V1.3.2 Prefilled Code Laboratory Release
+name: ConnectSync V1.3.2 Prefilled Code Laboratory Release 2
 
 on:
   workflow_dispatch:
@@ -15,5 +15,5 @@ jobs:
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: "connectsync-v1.3.2-lab.1"
+      upload-tag: "connectsync-v1.3.2-lab.2"
       prerelease: true
