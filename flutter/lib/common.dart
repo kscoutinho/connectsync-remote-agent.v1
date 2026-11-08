@@ -52,6 +52,9 @@ final navigationBarKey = GlobalKey();
 final connectSyncSupportCode = ValueNotifier<String?>(null);
 // Retain the launch type until the initial window visibility decision.
 bool connectSyncSupportLaunchRequested = false;
+// True only for the disposable Quick Support executable. It opens the
+// one-time support-code confirmation as soon as the window is ready.
+bool connectSyncQuickSupportLaunchRequested = false;
 
 final isAndroid = isAndroid_;
 final isIOS = isIOS_;
@@ -2397,11 +2400,11 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
               RegExp(r'^\d{10,16}$').hasMatch(technicianUntil)) {
             // Keep the portal identity scoped to this remote peer. Rust only
             // uses it while the portal authorization is still valid.
-            await bind.mainSetPeerOption(
+            bind.mainSetPeerOptionSync(
                 id: remoteId,
                 key: 'connectsync-technician-name',
                 value: technicianName);
-            await bind.mainSetPeerOption(
+            bind.mainSetPeerOptionSync(
                 id: remoteId,
                 key: 'connectsync-technician-until',
                 value: technicianUntil);

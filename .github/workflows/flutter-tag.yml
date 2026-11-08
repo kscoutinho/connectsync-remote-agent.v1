@@ -1,19 +1,19 @@
-name: ConnectSync V1.2.1 Laboratory Release
+name: ConnectSync V1.3.1 Technician Identity Laboratory Release
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'connectsync/v1.2.1-technician-identity'
+      - 'connectsync/v1.3.1-technician-identity'
 
 permissions:
   contents: write
 
 jobs:
-  run-connectsync-v1-2-1-lab-release:
+  run-connectsync-v1-3-1-technician-identity-lab-release:
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: "connectsync-v1.2.1-lab.1"
+      upload-tag: "connectsync-v1.3.1-lab.1"
       prerelease: true

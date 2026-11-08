@@ -1,6 +1,6 @@
 # ConnectSync Remote Agent
 
-## Versão 1.1.0
+## Versão 1.3.0
 
 Cliente Windows x64 personalizado para suporte remoto ConnectSync, baseado no RustDesk OSS 1.4.9.
 
@@ -21,6 +21,7 @@ A chave privada permanece exclusivamente no servidor e não integra o código-fo
 - Logo, ícones e metadados ConnectSync
 - MSI permanente com serviço automático
 - Executável portátil para suporte assistido
+- Variante `ConnectSync-Acesso-Rapido-qs-v1.3.1-x86_64.exe`, que abre diretamente a confirmação do código único
 - Servidor próprio obrigatório, sem fallback para os servidores públicos
 - Instalação limpa com apenas um serviço `ConnectSync`
 - Conexão externa e persistência após reinicialização validadas em laboratório
@@ -30,12 +31,12 @@ A chave privada permanece exclusivamente no servidor e não integra o código-fo
 
 ### Publicação
 
-O primeiro pacote de validação usa a tag `connectsync-v1.1.0-lab.1`. Depois do teste dos dois fluxos, a release estável usará `connectsync-v1.1.0`. O workflow define explicitamente o commit de destino da tag, garantindo que o código-fonte publicado corresponda aos binários.
+O pacote de validação da correção de identidade usa a tag `connectsync-v1.3.1-lab.1`. Depois do teste dos dois fluxos, a release estável usará `connectsync-v1.3.1`. O workflow define explicitamente o commit de destino da tag, garantindo que o código-fonte publicado corresponda aos binários.
 
 Arquivos oficiais:
 
-- `ConnectSync-Remote-Agent-v1.1.0-x86_64.msi`
-- `ConnectSync-Remote-Agent-v1.1.0-x86_64.exe`
+- `ConnectSync-Remote-Agent-v1.3.1-x86_64.msi`
+- `ConnectSync-Remote-Agent-v1.3.1-x86_64.exe`
 
 O arquivo legado `rustdesk-1.4.9-x86_64.msi`, presente na release de laboratório, não deve ser distribuído.
 
