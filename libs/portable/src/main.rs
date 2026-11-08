@@ -18,6 +18,7 @@ const APP_METADATA: &[u8] = &[];
 const APP_METADATA_CONFIG: &str = "meta.toml";
 const META_LINE_PREFIX_TIMESTAMP: &str = "timestamp = ";
 const APP_PREFIX: &str = "rustdesk";
+const QUICK_SUPPORT_CODE_MARKER: &str = "-code-";
 const APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
 #[cfg(windows)]
 const SET_FOREGROUND_WINDOW_ENV_KEY: &str = "SET_FOREGROUND_WINDOW";
@@ -174,6 +175,26 @@ fn execute(path: PathBuf, args: Vec<String>, _ui: bool) {
     }
 }
 
+fn quick_support_code_from_exe(exe: &str) -> Option<String> {
+    let file_name = Path::new(exe).file_name()?.to_str()?.to_ascii_lowercase();
+    let marker_start = file_name.find(QUICK_SUPPORT_CODE_MARKER)?;
+    let code_start = marker_start + QUICK_SUPPORT_CODE_MARKER.len();
+    let remainder = file_name.get(code_start..)?;
+    let code = remainder.get(..8)?;
+
+    if !code.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+
+    if let Some(next) = remainder.as_bytes().get(8) {
+        if !matches!(*next, b'-' | b'_' | b'.' | b' ') {
+            return None;
+        }
+    }
+
+    Some(code.to_owned())
+}
+
 fn main() {
     let mut args = Vec::new();
     let mut arg_exe = Default::default();
@@ -205,8 +226,40 @@ fn main() {
             args = vec!["--install".to_owned()];
         } else if quick_support {
             args = vec!["--quick_support".to_owned()];
+            if let Some(code) = quick_support_code_from_exe(&arg_exe) {
+                args.push(format!("--connectsync-support-code={code}"));
+            }
         }
         execute(exe, args, ui);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::quick_support_code_from_exe;
+
+    #[test]
+    fn extracts_quick_support_code_from_download_name() {
+        assert_eq!(
+            quick_support_code_from_exe(
+                r"C:\Users\Cliente\Downloads\ConnectSync-Acesso-Rapido-code-12345678-qs-v1.3.2-x86_64 (1).exe"
+            ),
+            Some("12345678".to_owned())
+        );
+    }
+
+    #[test]
+    fn ignores_missing_or_malformed_quick_support_code() {
+        assert_eq!(
+            quick_support_code_from_exe("ConnectSync-Acesso-Rapido-qs-v1.3.2-x86_64.exe"),
+            None
+        );
+        assert_eq!(
+            quick_support_code_from_exe(
+                "ConnectSync-Acesso-Rapido-code-123456789-qs-v1.3.2-x86_64.exe"
+            ),
+            None
+        );
     }
 }
 

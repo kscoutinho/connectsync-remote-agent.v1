@@ -47,10 +47,14 @@ class _ConnectSyncSupportCardState extends State<ConnectSyncSupportCard> {
   }
 
   void _consumeDeepLinkCode() {
-    if (!mounted || _redeemDialogOpen) return;
+    if (!mounted) return;
     final code = connectSyncSupportCode.value;
     if (code == null || !RegExp(r'^\d{8}$').hasMatch(code)) return;
     connectSyncSupportCode.value = null;
+    // Startup arguments are handled once before the first frame and again by
+    // the normal URI-link path. Consume the duplicate without opening a
+    // second dialog.
+    if (_redeemDialogOpen) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _showRedeemDialog(initialCode: code);
     });

@@ -73,6 +73,12 @@ pub fn core_main() -> Option<Vec<String>> {
                 _is_quick_support = true;
                 #[cfg(feature = "flutter")]
                 flutter_args.push("--connectsync-quick-support".to_string());
+            } else if let Some(code) = connectsync_support_code_arg(&arg) {
+                #[cfg(feature = "flutter")]
+                {
+                    flutter_args.push("--support".to_string());
+                    flutter_args.push(code.to_owned());
+                }
             } else if arg == "--no-server" {
                 no_server = true;
             } else {
@@ -984,6 +990,22 @@ mod tests {
             assert!(!is_user_main_ipc_scope_cli_command(&args(&[command])));
         }
     }
+
+    #[test]
+    fn accepts_only_eight_digit_connectsync_support_codes() {
+        assert_eq!(
+            connectsync_support_code_arg("--connectsync-support-code=12345678"),
+            Some("12345678")
+        );
+        assert_eq!(
+            connectsync_support_code_arg("--connectsync-support-code=123456789"),
+            None
+        );
+        assert_eq!(
+            connectsync_support_code_arg("--connectsync-support-code=1234ABCD"),
+            None
+        );
+    }
 }
 
 /// Check if the executable is a Quick Support version.
@@ -993,4 +1015,13 @@ mod tests {
 fn is_quick_support_exe(exe: &str) -> bool {
     let exe = exe.to_lowercase();
     exe.contains("-qs-") || exe.contains("-qs.exe") || exe.contains("_qs.exe")
+}
+
+fn connectsync_support_code_arg(arg: &str) -> Option<&str> {
+    let code = arg.strip_prefix("--connectsync-support-code=")?;
+    if code.len() == 8 && code.bytes().all(|byte| byte.is_ascii_digit()) {
+        Some(code)
+    } else {
+        None
+    }
 }
