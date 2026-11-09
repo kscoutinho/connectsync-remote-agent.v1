@@ -1,19 +1,19 @@
-name: ConnectSync V1.3.2 Prefilled Code Laboratory Release 2
+name: ConnectSync V1.3.2 Connection Manager Laboratory Release 3
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'connectsync/v1.3.2-prefilled-code'
+      - 'connectsync/v1.3.2-cm-fix'
 
 permissions:
   contents: write
 
 jobs:
-  run-connectsync-v1-3-2-prefilled-code-lab-release:
+  run-connectsync-v1-3-2-cm-fix-lab-release:
     uses: ./.github/workflows/flutter-build.yml
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: "connectsync-v1.3.2-lab.2"
+      upload-tag: "connectsync-v1.3.2-lab.3"
       prerelease: true

@@ -395,6 +395,7 @@ jobs:
             - Código de atendimento gerado pelo técnico ou pelo cliente
             - Identidade do técnico autenticado preservada em conexões novas e reaproveitadas
             - Código do portal preenchido automaticamente no Acesso Rápido baixado para o atendimento
+            - Confirmação de acesso restaurada no cliente para conexões iniciadas pelo Acesso Rápido
             - Integração segura com remoto.connectsync.com.br
             - Baseado no RustDesk OSS 1.4.9, sob licença AGPL-3.0
 

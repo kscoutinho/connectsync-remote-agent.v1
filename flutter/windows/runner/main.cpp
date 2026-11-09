@@ -46,13 +46,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
-  // Remove possible trailing whitespace from command line arguments
+  // Utf8FromUtf16 keeps the terminating NUL in the std::string. Remove it,
+  // along with any trailing whitespace, before exact argument comparisons
+  // such as the multiple-instance whitelist for --cm.
   for (auto& argument : command_line_arguments) {
-    const auto last_non_space = argument.find_last_not_of(" \n\r\t");
-    if (last_non_space == std::string::npos) {
-      argument.clear();
-    } else {
-      argument.erase(last_non_space + 1);
+    while (!argument.empty()) {
+      const auto last = argument.back();
+      if (last != '\0' && last != ' ' && last != '\n' && last != '\r' &&
+          last != '\t') {
+        break;
+      }
+      argument.pop_back();
     }
   }
 
