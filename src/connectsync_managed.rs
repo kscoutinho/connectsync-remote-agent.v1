@@ -178,7 +178,7 @@ mod tests {
 
     fn login_request() -> LoginRequest {
         LoginRequest {
-            os_login: Some(OSLogin::new()).into(),
+            os_login: Some(OSLogin::default()).into(),
             ..Default::default()
         }
     }
