@@ -2319,6 +2319,7 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   String? supportCode = connectSyncSupportCodeFromArgs(args);
   String? connectSyncTechnicianName;
   String? connectSyncTechnicianUntil;
+  String? connectSyncManagedGrant;
   bool? forceRelay;
   for (int i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -2394,6 +2395,15 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
           i++;
         }
         break;
+      case '--connectsync-managed-grant':
+        if (i + 1 < args.length) {
+          final value = args[i + 1].trim();
+          if (RegExp(r'^[A-Za-z0-9_-]{40,80}$').hasMatch(value)) {
+            connectSyncManagedGrant = value;
+          }
+          i++;
+        }
+        break;
       default:
         break;
     }
@@ -2425,6 +2435,13 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
                 id: remoteId,
                 key: 'connectsync-technician-until',
                 value: technicianUntil);
+            final managedGrant = connectSyncManagedGrant;
+            if (managedGrant != null) {
+              bind.mainSetPeerOptionSync(
+                  id: remoteId,
+                  key: 'connectsync-managed-grant',
+                  value: managedGrant);
+            }
           }
           await rustDeskWinManager.newRemoteDesktop(remoteId,
               password: password,
@@ -2607,6 +2624,11 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
     if (technicianName != null && technicianUntil != null) {
       args.addAll(['--connectsync-technician-name', technicianName]);
       args.addAll(['--connectsync-technician-until', technicianUntil]);
+    }
+    final managedGrant = param["managed_grant"];
+    if (managedGrant != null &&
+        RegExp(r'^[A-Za-z0-9_-]{40,80}$').hasMatch(managedGrant)) {
+      args.addAll(['--connectsync-managed-grant', managedGrant]);
     }
     if (param["relay"] != null) args.add("--relay");
     return args;

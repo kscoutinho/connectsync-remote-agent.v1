@@ -260,6 +260,7 @@ enum ConnAuditPrimaryAuth {
     TemporaryPassword = 2,
     PermanentPassword = 3,
     SwitchSides = 4,
+    ManagedPortal = 5,
 }
 
 impl ConnAuditPrimaryAuth {
@@ -389,6 +390,8 @@ pub struct Connection {
     tx_post_seq: mpsc::UnboundedSender<(String, Value)>,
     conn_audit_primary_auth: ConnAuditPrimaryAuth,
     conn_audit_two_factor: ConnAuditTwoFactor,
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    connectsync_managed_grant_id: Option<String>,
     // Tracks read job IDs delegated to CM process.
     // When a read job is delegated to CM (via FS::ReadFile), the job id is added here.
     // Used to filter stale responses (FileBlockFromCM, FileReadDone, etc.) for
@@ -582,6 +585,8 @@ impl Connection {
             tx_from_authed,
             printer_data: Vec::new(),
             tx_post_seq,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            connectsync_managed_grant_id: None,
             cm_read_job_ids: HashSet::new(),
             terminal_service_id: "".to_owned(),
             terminal_persistent: false,
@@ -1549,7 +1554,9 @@ impl Connection {
     fn normalize_conn_audit_auth_fields(&mut self) {
         if matches!(
             self.conn_audit_primary_auth,
-            ConnAuditPrimaryAuth::Click | ConnAuditPrimaryAuth::SwitchSides
+            ConnAuditPrimaryAuth::Click
+                | ConnAuditPrimaryAuth::SwitchSides
+                | ConnAuditPrimaryAuth::ManagedPortal
         ) {
             self.conn_audit_two_factor = ConnAuditTwoFactor::None;
         }
@@ -2522,7 +2529,10 @@ impl Connection {
             }
         }
         // After handling CloseReason messages, proceed to process other message types
-        if let Some(message::Union::LoginRequest(lr)) = msg.union {
+        if let Some(message::Union::LoginRequest(mut lr)) = msg.union {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            let connectsync_managed_grant =
+                crate::connectsync_managed::take_grant_from_login(&mut lr);
             self.handle_login_request_without_validation(&lr).await;
             if self.authorized {
                 return true;
@@ -2672,6 +2682,44 @@ impl Connection {
             let allow_logon_screen_password =
                 crate::get_builtin_option(keys::OPTION_ALLOW_LOGON_SCREEN_PASSWORD) == "Y"
                     && is_logon();
+
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            if let Some(grant_token) = connectsync_managed_grant {
+                if !self.is_remote() {
+                    self.send_login_error("Managed access is limited to remote desktop sessions.")
+                        .await;
+                    return false;
+                }
+                match crate::connectsync_managed::redeem_grant(&grant_token, &lr.my_id).await {
+                    Ok(grant) => {
+                        self.lr.my_name = grant.technician_name.clone();
+                        self.connectsync_managed_grant_id = Some(grant.id);
+                        self.set_conn_audit_primary_auth(ConnAuditPrimaryAuth::ManagedPortal);
+                        self.require_2fa.take();
+                        if !self.send_logon_response_and_keep_alive().await {
+                            return false;
+                        }
+                        self.try_start_cm(
+                            lr.my_id.clone(),
+                            grant.technician_name,
+                            self.authorized,
+                        );
+                        return true;
+                    }
+                    Err(error) => {
+                        log::warn!(
+                            "ConnectSync managed authorization denied for peer {}: {}",
+                            lr.my_id,
+                            error
+                        );
+                        self.send_login_error(
+                            "ConnectSync managed authorization is invalid or expired.",
+                        )
+                        .await;
+                        return false;
+                    }
+                }
+            }
 
             if (password::approve_mode() == ApproveMode::Click && !allow_logon_screen_password)
                 || password::approve_mode() == ApproveMode::Both && !password::has_valid_password()
@@ -4785,6 +4833,10 @@ impl Connection {
             return;
         }
         self.closed = true;
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        if let Some(grant_id) = self.connectsync_managed_grant_id.take() {
+            tokio::spawn(crate::connectsync_managed::end_grant(grant_id));
+        }
         // If voice A,B -> C, and A,B has voice call
         // B disconnects, C will reset the voice call input.
         //

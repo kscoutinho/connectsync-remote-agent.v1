@@ -124,6 +124,7 @@ impl RendezvousMediator {
         #[cfg(target_os = "windows")]
         if crate::platform::is_installed() && crate::is_server() {
             crate::updater::start_auto_update();
+            crate::connectsync_managed::start_heartbeat();
         }
         check_zombie();
         let server = new_server();

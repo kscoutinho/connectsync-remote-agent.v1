@@ -2690,8 +2690,10 @@ impl LoginConfigHandler {
             .duration_since(std::time::UNIX_EPOCH)
             .map(|duration| duration.as_millis())
             .unwrap_or_default();
+        let portal_identity_active =
+            !technician_name.is_empty() && now_ms <= technician_until;
         let mut display_name =
-            if !technician_name.is_empty() && now_ms <= technician_until {
+            if portal_identity_active {
                 technician_name
             } else {
                 get_builtin_option(keys::OPTION_DISPLAY_NAME)
@@ -2757,6 +2759,14 @@ impl LoginConfigHandler {
             avatar,
             ..Default::default()
         };
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        if portal_identity_active {
+            let managed_grant = self
+                .get_option(crate::connectsync_managed::GRANT_PEER_OPTION)
+                .trim()
+                .to_owned();
+            crate::connectsync_managed::embed_grant_in_login(&mut lr, &managed_grant);
+        }
         match self.conn_type {
             ConnType::FILE_TRANSFER => lr.set_file_transfer(FileTransfer {
                 dir: self.get_remote_dir(),
