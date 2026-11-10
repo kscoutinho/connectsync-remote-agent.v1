@@ -1,0 +1,47 @@
+name: Promote ConnectSync V1.4.0 Stable
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "connectsync/release-v1.4.0"
+
+permissions:
+  contents: write
+
+jobs:
+  promote-tested-release:
+    name: Promote tested Managed Servers Lab 2 binaries
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download tested Lab 2 assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p release
+          gh release download connectsync-v1.4.0-managed-lab.2 \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir release
+
+      - name: Verify tested asset hashes
+        working-directory: release
+        run: |
+          echo "57fd47dc7e4bab55f8e77a9a74b105b3a427e792b7ea283f999edead35d90c8c  ConnectSync-Acesso-Rapido-qs-v1.4.0-x86_64.exe" | sha256sum --check --strict
+          echo "57fd47dc7e4bab55f8e77a9a74b105b3a427e792b7ea283f999edead35d90c8c  ConnectSync-Remote-Agent-v1.4.0-x86_64.exe" | sha256sum --check --strict
+          echo "2e2dd63a31c74eefaf59debc7ed17217b46a25925c0fd3268cd55566197378b2  ConnectSync-Remote-Agent-v1.4.0-x86_64.msi" | sha256sum --check --strict
+
+      - name: Publish stable ConnectSync V1.4.0 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view connectsync-v1.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Stable release connectsync-v1.4.0 already exists."
+            exit 0
+          fi
+
+          gh release create connectsync-v1.4.0 release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target 863d029e1d1a00890a134a01238e8263fb7ff8e5 \
+            --title "ConnectSync Remote Agent V1.4.0" \
+            --notes "Versão estável promovida a partir da Managed Servers Lab 2 validada em produção. Inclui servidores gerenciados, vínculo permanente ao portal, autorização temporária por técnico, conexão sem senha, identificação correta do técnico e controle remoto do mouse. A release Managed Servers Lab 2 e a branch connectsync/stable-v1.4.0 permanecem preservadas como pontos seguros de retorno." \
+            --latest
