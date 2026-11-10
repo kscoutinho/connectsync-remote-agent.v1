@@ -1,4 +1,4 @@
-name: ConnectSync V1.4.0 Managed Servers Laboratory Release 1
+name: ConnectSync V1.4.0 Managed Servers Laboratory Release 2
 
 on:
   workflow_dispatch:
@@ -15,5 +15,5 @@ jobs:
     secrets: inherit
     with:
       upload-artifact: true
-      upload-tag: "connectsync-v1.4.0-managed-lab.1"
+      upload-tag: "connectsync-v1.4.0-managed-lab.2"
       prerelease: true
