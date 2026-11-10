@@ -1,0 +1,47 @@
+name: Promote ConnectSync V1.3.2 Stable
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "connectsync/release-v1.3.2"
+
+permissions:
+  contents: write
+
+jobs:
+  promote-tested-release:
+    name: Promote tested Lab 3 binaries
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download tested Lab 3 assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p release
+          gh release download connectsync-v1.3.2-lab.3 \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir release
+
+      - name: Verify tested asset hashes
+        working-directory: release
+        run: |
+          echo "83d7754f2969832d5e648d78ab2cc6521a4c03179422eb81d81541479c6da39b  ConnectSync-Acesso-Rapido-qs-v1.3.2-x86_64.exe" | sha256sum --check --strict
+          echo "83d7754f2969832d5e648d78ab2cc6521a4c03179422eb81d81541479c6da39b  ConnectSync-Remote-Agent-v1.3.2-x86_64.exe" | sha256sum --check --strict
+          echo "90791e61b3e51e3f2c28396fde96fd5ce511597e940c3785662c37e8969605ef  ConnectSync-Remote-Agent-v1.3.2-x86_64.msi" | sha256sum --check --strict
+
+      - name: Publish stable ConnectSync V1.3.2 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view connectsync-v1.3.2 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Stable release connectsync-v1.3.2 already exists."
+            exit 0
+          fi
+
+          gh release create connectsync-v1.3.2 release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target e2b92651e01707e06fe908596cac8898af17b1b5 \
+            --title "ConnectSync Remote Agent V1.3.2" \
+            --notes "Versão estável promovida a partir da Lab 3 validada em produção. Inclui código de atendimento preenchido automaticamente, identificação correta do técnico, confirmação do cliente e correção do Connection Manager. A release Lab 3 permanece preservada como ponto de retorno." \
+            --latest
