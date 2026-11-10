@@ -2760,7 +2760,7 @@ impl LoginConfigHandler {
             ..Default::default()
         };
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if portal_identity_active {
+        {
             let managed_grant = self
                 .get_option(crate::connectsync_managed::GRANT_PEER_OPTION)
                 .trim()

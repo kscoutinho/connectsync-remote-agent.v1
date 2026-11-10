@@ -2435,13 +2435,10 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
                 id: remoteId,
                 key: 'connectsync-technician-until',
                 value: technicianUntil);
-            final managedGrant = connectSyncManagedGrant;
-            if (managedGrant != null) {
-              bind.mainSetPeerOptionSync(
-                  id: remoteId,
-                  key: 'connectsync-managed-grant',
-                  value: managedGrant);
-            }
+            bind.mainSetPeerOptionSync(
+                id: remoteId,
+                key: 'connectsync-managed-grant',
+                value: connectSyncManagedGrant ?? '');
           }
           await rustDeskWinManager.newRemoteDesktop(remoteId,
               password: password,
